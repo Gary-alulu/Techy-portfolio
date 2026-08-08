@@ -11,15 +11,15 @@ export default function AnimatedBackground() {
       
       {/* Animated Mesh Gradients - using radial-gradient natively instead of CSS blur() for massive performance gain */}
       <div 
-        className="absolute top-[-20%] left-[-10%] w-[50vw] h-[50vw] rounded-full animate-[pulse_10s_ease-in-out_infinite_alternate]" 
+        className="absolute top-[-20%] left-[-10%] w-[50vw] h-[50vw] rounded-full animate-[pulse_10s_ease-in-out_infinite_alternate] will-change-transform" 
         style={{ background: 'radial-gradient(circle, rgba(0, 117, 255, 0.15) 0%, transparent 70%)' }}
       />
       <div 
-        className="absolute top-[20%] right-[-10%] w-[40vw] h-[40vw] rounded-full animate-[pulse_12s_ease-in-out_infinite_alternate-reverse]"
+        className="absolute top-[20%] right-[-10%] w-[40vw] h-[40vw] rounded-full animate-[pulse_12s_ease-in-out_infinite_alternate-reverse] will-change-transform"
         style={{ background: 'radial-gradient(circle, rgba(157, 0, 255, 0.15) 0%, transparent 70%)' }}
       />
       <div 
-        className="absolute bottom-[-10%] left-[20%] w-[60vw] h-[60vw] rounded-full animate-[pulse_15s_ease-in-out_infinite_alternate]"
+        className="absolute bottom-[-10%] left-[20%] w-[60vw] h-[60vw] rounded-full animate-[pulse_15s_ease-in-out_infinite_alternate] will-change-transform"
         style={{ background: 'radial-gradient(circle, rgba(255, 107, 0, 0.15) 0%, transparent 70%)' }}
       />
     </div>

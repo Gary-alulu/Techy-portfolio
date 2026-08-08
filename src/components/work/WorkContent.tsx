@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import Image from "next/image";
@@ -24,7 +25,27 @@ export interface Project {
   thumbnailUrl?: string;
 }
 
-export function WorkContent({ activeCategory, projects }: { activeCategory: string, projects: Project[] }) {
+export function WorkContent({ activeCategory, projects: initialProjects }: { activeCategory: string, projects?: Project[] }) {
+  const [projects, setProjects] = useState<Project[]>(initialProjects || []);
+  const [isLoading, setIsLoading] = useState(!initialProjects || initialProjects.length === 0);
+
+  useEffect(() => {
+    if (initialProjects && initialProjects.length > 0) return;
+    let cancelled = false;
+    fetch("/api/projects")
+      .then((res) => res.json())
+      .then((data) => {
+        if (!cancelled && data.success) {
+          setProjects(
+            data.projects.map((p: any) => ({ ...p, _id: p._id?.toString?.() || p._id }))
+          );
+        }
+      })
+      .catch(() => {})
+      .finally(() => { if (!cancelled) setIsLoading(false); });
+    return () => { cancelled = true; };
+  }, [initialProjects]);
+
   const filteredProjects = projects.filter(
     (p) => activeCategory === "All" || p.category === activeCategory
   );
@@ -56,7 +77,13 @@ export function WorkContent({ activeCategory, projects }: { activeCategory: stri
       </div>
 
       {/* Project Grid */}
-      {filteredProjects.length === 0 ? (
+      {isLoading ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {[...Array(6)].map((_, i) => (
+            <div key={i} className="h-[400px] rounded-[var(--radius-container)] bg-white/5 animate-pulse" />
+          ))}
+        </div>
+      ) : filteredProjects.length === 0 ? (
         <motion.div 
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}

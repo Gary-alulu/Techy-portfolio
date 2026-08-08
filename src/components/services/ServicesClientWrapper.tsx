@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Configurator from "@/components/services/Configurator";
 import WhoIHelp from "@/components/services/WhoIHelp";
 import ProblemsISolve from "@/components/services/ProblemsISolve";
@@ -11,8 +11,21 @@ import TechStack from "@/components/services/TechStack";
 import FeaturedWork from "@/components/services/FeaturedWork";
 import type { ServiceType } from "@/app/services/page";
 
-export default function ServicesClientWrapper({ initialProjects = [] }: { initialProjects?: any[] }) {
+export default function ServicesClientWrapper({ initialProjects }: { initialProjects?: any[] } = {}) {
   const [selectedServices, setSelectedServices] = useState<ServiceType[]>([]);
+  const [projects, setProjects] = useState<any[]>(initialProjects || []);
+
+  useEffect(() => {
+    if (initialProjects && initialProjects.length > 0) return;
+    fetch("/api/projects")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success) {
+          setProjects(data.projects.map((p: any) => ({ ...p, _id: p._id?.toString?.() || p._id })));
+        }
+      })
+      .catch(() => {});
+  }, [initialProjects]);
 
   return (
     <>
@@ -23,7 +36,8 @@ export default function ServicesClientWrapper({ initialProjects = [] }: { initia
       <ProcessJourney selected={selectedServices} />
       <Deliverables selected={selectedServices} />
       <TechStack selected={selectedServices} />
-      <FeaturedWork selected={selectedServices} projects={initialProjects} />
+      <FeaturedWork selected={selectedServices} projects={projects} />
     </>
   );
 }
+

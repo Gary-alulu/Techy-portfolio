@@ -17,7 +17,7 @@ export default function WhatsAppButton() {
   useEffect(() => {
     const timer = setTimeout(() => {
       setHasLoaded(true);
-    }, 2200); // Match loading screen duration (2200ms)
+    }, 1500); // Appear after intro splash (1200ms) + buffer
     return () => clearTimeout(timer);
   }, []);
 

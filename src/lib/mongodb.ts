@@ -20,6 +20,8 @@ async function connectToDatabase() {
   if (!cached.promise) {
     const opts = {
       bufferCommands: false,
+      serverSelectionTimeoutMS: 3000,
+      socketTimeoutMS: 3000,
     };
 
     cached.promise = mongoose.connect(MONGODB_URI as string, opts).then((mongoose) => {

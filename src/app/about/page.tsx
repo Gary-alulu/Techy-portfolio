@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import dynamic from "next/dynamic";
 
 import { AboutBackground } from "@/components/about/AboutBackground";
@@ -21,6 +22,8 @@ export const metadata = {
   description: "Learn more about my design philosophy, creative journey, and the tools I use to build premium digital experiences.",
 };
 
+const SectionFallback = () => <div className="min-h-[150px] w-full" />;
+
 export default function AboutPage() {
   return (
     <div className="relative min-h-screen overflow-hidden text-white selection:bg-[var(--color-accent-blue)]/30">
@@ -31,14 +34,34 @@ export default function AboutPage() {
         <StoryCards />
         <DesignPhilosophy />
         
-        {/* Lazy Loaded Sections */}
-        <EvolutionTimeline />
-        <BentoExpertise />
-        <CreativeProcess />
-        <FloatingTools />
-        <PremiumStats />
-        <BehindTheScenes />
-        <FunFacts />
+        {/* Lazy Loaded Sections with Suspense boundaries */}
+        <Suspense fallback={<SectionFallback />}>
+          <EvolutionTimeline />
+        </Suspense>
+
+        <Suspense fallback={<SectionFallback />}>
+          <BentoExpertise />
+        </Suspense>
+
+        <Suspense fallback={<SectionFallback />}>
+          <CreativeProcess />
+        </Suspense>
+
+        <Suspense fallback={<SectionFallback />}>
+          <FloatingTools />
+        </Suspense>
+
+        <Suspense fallback={<SectionFallback />}>
+          <PremiumStats />
+        </Suspense>
+
+        <Suspense fallback={<SectionFallback />}>
+          <BehindTheScenes />
+        </Suspense>
+
+        <Suspense fallback={<SectionFallback />}>
+          <FunFacts />
+        </Suspense>
 
         {/* Testimonial Strip */}
         <TestimonialStrip />
@@ -49,3 +72,4 @@ export default function AboutPage() {
     </div>
   );
 }
+

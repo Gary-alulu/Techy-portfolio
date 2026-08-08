@@ -5,15 +5,13 @@ import "./globals.css";
 import Navigation from "@/components/layout/Navigation";
 import Footer from "@/components/layout/Footer";
 import { Providers } from "@/components/Providers";
-import ResumeModal from "@/components/ui/ResumeModal";
-import CustomCursor from "@/components/ui/CustomCursor";
-import AnimatedBackground from "@/components/ui/AnimatedBackground";
 import LoadingScreen from "@/components/ui/LoadingScreen";
-import WhatsAppButton from "@/components/ui/WhatsAppButton";
+import ClientWidgets from "@/components/layout/ClientWidgets";
 
 const inter = Inter({
   variable: "--font-inter",
   subsets: ["latin"],
+  display: "swap",
 });
 
 export const metadata: Metadata = {
@@ -46,18 +44,16 @@ export default function RootLayout({
           <div className="fixed inset-0 pointer-events-none z-50 opacity-[0.05] bg-[url('/noise.png')]"></div>
           
           <LoadingScreen />
-          <CustomCursor />
-          <AnimatedBackground />
+          <ClientWidgets />
           <Navigation />
           <main className="flex-grow pt-[144px] px-6 sm:px-12 lg:px-16 max-w-7xl mx-auto w-full">
             {children}
           </main>
           <Footer />
-          <WhatsAppButton />
-          <ResumeModal />
         </Providers>
         <Analytics />
       </body>
     </html>
   );
 }
+

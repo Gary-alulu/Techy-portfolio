@@ -204,6 +204,7 @@ export function AboutHero() {
                 src="/images/SILHOUTE.png" 
                 alt="Gary Alulu Silhouette" 
                 fill 
+                sizes="(max-width: 768px) 400px, 600px"
                 className="object-contain object-bottom"
                 priority
               />
