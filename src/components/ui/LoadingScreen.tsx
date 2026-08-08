@@ -17,11 +17,23 @@ export default function LoadingScreen() {
         setIsLoading(true);
         sessionStorage.setItem("hasLoadedIntro", "true");
         
-        const timer = setTimeout(() => {
-          setIsLoading(false);
-        }, 1200);
+        const dismiss = () => setIsLoading(false);
 
-        return () => clearTimeout(timer);
+        if (document.readyState === "complete") {
+          // Page & images already loaded
+          const timer = setTimeout(dismiss, 300);
+          return () => clearTimeout(timer);
+        } else {
+          // Dismiss loading as soon as images and assets are ready
+          window.addEventListener("load", dismiss);
+          // Safety timeout so it never hangs
+          const fallback = setTimeout(dismiss, 1500);
+
+          return () => {
+            window.removeEventListener("load", dismiss);
+            clearTimeout(fallback);
+          };
+        }
       }
     }
   }, [pathname]);
