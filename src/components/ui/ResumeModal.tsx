@@ -176,7 +176,14 @@ export default function ResumeModal() {
                             <button onClick={() => setZoom(z => Math.max(0.5, z - 0.2))} className="p-1.5 hover:text-white hover:bg-white/10 rounded transition-colors"><ZoomOut className="w-4 h-4" /></button>
                             <button onClick={() => setZoom(z => Math.min(2.5, z + 0.2))} className="p-1.5 hover:text-white hover:bg-white/10 rounded transition-colors"><ZoomIn className="w-4 h-4" /></button>
                             <div className="w-px h-4 bg-white/10 mx-1" />
-                            <button onClick={() => window.open(currentRole?.fileUrl || "#", "_blank")} className="p-1.5 hover:text-white hover:bg-white/10 rounded transition-colors"><Maximize className="w-4 h-4" /></button>
+                            <a 
+                              href={currentRole?.fileUrl || "#"} 
+                              target="_blank" 
+                              rel="noreferrer noopener"
+                              className="p-1.5 hover:text-white hover:bg-white/10 rounded transition-colors"
+                            >
+                              <Maximize className="w-4 h-4" />
+                            </a>
                           </div>
                         </div>
                         {/* Real PDF Document Page */}
