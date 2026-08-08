@@ -1,5 +1,9 @@
 import { WorkContent } from "@/components/work/WorkContent";
+import { getProjects } from "@/lib/getProjects";
 
-export default function FrontendPage() {
-  return <WorkContent activeCategory="Front End Design" />;
+export const revalidate = 60;
+
+export default async function FrontendPage() {
+  const projects = await getProjects();
+  return <WorkContent activeCategory="Front End Design" projects={projects} />;
 }

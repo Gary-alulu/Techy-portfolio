@@ -1,18 +1,21 @@
 import dynamic from "next/dynamic";
 import HomeHero from "@/components/home/HomeHero";
 import FeaturedWorkSection from "@/components/home/FeaturedWorkSection";
+import { getProjects } from "@/lib/getProjects";
 
-// Dynamically import the heavy process component to defer loading
 const HomeProcess = dynamic(() => import("@/components/home/HomeProcess"));
 
-export default function Home() {
+export const revalidate = 60;
+
+export default async function Home() {
+  const projects = await getProjects(undefined, 4);
   return (
     <div className="flex flex-col gap-16 md:gap-32 pb-16 md:pb-24">
       {/* HERO SECTION */}
       <HomeHero />
 
-      {/* FEATURED WORK - fetches data client-side */}
-      <FeaturedWorkSection />
+      {/* FEATURED WORK */}
+      <FeaturedWorkSection initialProjects={projects} />
 
       {/* CREATIVE PROCESS */}
       <HomeProcess />

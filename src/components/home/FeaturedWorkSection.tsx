@@ -5,11 +5,11 @@ import Link from "next/link";
 import Image from "next/image";
 import { ArrowRight } from "lucide-react";
 
-export default function FeaturedWorkSection() {
-  const [projects, setProjects] = useState<any[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+export default function FeaturedWorkSection({ initialProjects }: { initialProjects?: any[] }) {
+  const [projects, setProjects] = useState<any[]>(initialProjects || []);
 
   useEffect(() => {
+    if (initialProjects && initialProjects.length > 0) return;
     let cancelled = false;
     fetch("/api/projects")
       .then((res) => res.json())
@@ -22,10 +22,9 @@ export default function FeaturedWorkSection() {
           );
         }
       })
-      .catch(() => {})
-      .finally(() => { if (!cancelled) setIsLoading(false); });
+      .catch(() => {});
     return () => { cancelled = true; };
-  }, []);
+  }, [initialProjects]);
 
   return (
     <section className="space-y-12">
@@ -39,13 +38,7 @@ export default function FeaturedWorkSection() {
         </Link>
       </div>
 
-      {isLoading ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {/* First item large */}
-          <div className="col-span-1 md:col-span-2 lg:col-span-2 h-[400px] sm:h-[500px] rounded-[var(--radius-container)] bg-white/5 animate-pulse" />
-          <div className="col-span-1 h-[350px] sm:h-[400px] md:h-[500px] rounded-[var(--radius-container)] bg-white/5 animate-pulse" />
-        </div>
-      ) : projects.length === 0 ? (
+      {projects.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-24 text-center border border-white/5 rounded-[var(--radius-container)] bg-white/5">
           <h3 className="text-2xl font-bold mb-3">Coming Soon...</h3>
           <p className="text-[var(--color-secondary)] max-w-sm">
