@@ -5,5 +5,5 @@ export const revalidate = 60;
 
 export default async function MotionGraphicsPage() {
   const projects = await getProjects();
-  return <WorkContent activeCategory="Motion Graphics" projects={projects} />;
+  return <WorkContent activeCategory="Motion Graphics" projects={projects.length > 0 ? projects : undefined} />;
 }

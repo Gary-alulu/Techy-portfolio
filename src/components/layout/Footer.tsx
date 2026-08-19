@@ -75,7 +75,7 @@ export default function Footer() {
         </div>
         
         <div className="flex flex-col md:flex-row justify-between items-center pt-8 border-t border-white/5 text-[var(--color-secondary)] text-sm">
-          <p className="text-center md:text-left mb-6 md:mb-0">© {new Date().getFullYear()} Gary Design Studio. All rights reserved.</p>
+          <p className="text-center md:text-left mb-6 md:mb-0">&copy; {new Date().getFullYear()} Gary Design Studio. All rights reserved.</p>
           <button 
             onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
             className="hover:text-white transition-colors px-6 py-2 border border-[var(--color-glass-border)] rounded-full md:border-transparent md:px-0 md:py-0"

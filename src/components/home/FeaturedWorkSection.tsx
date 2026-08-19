@@ -7,9 +7,10 @@ import { ArrowRight } from "lucide-react";
 
 export default function FeaturedWorkSection({ initialProjects }: { initialProjects?: any[] }) {
   const [projects, setProjects] = useState<any[]>(initialProjects || []);
+  const [isLoading, setIsLoading] = useState(!initialProjects);
 
   useEffect(() => {
-    if (initialProjects && initialProjects.length > 0) return;
+    if (initialProjects) return;
     let cancelled = false;
     fetch("/api/projects")
       .then((res) => res.json())
@@ -22,7 +23,8 @@ export default function FeaturedWorkSection({ initialProjects }: { initialProjec
           );
         }
       })
-      .catch(() => {});
+      .catch(() => {})
+      .finally(() => { if (!cancelled) setIsLoading(false); });
     return () => { cancelled = true; };
   }, [initialProjects]);
 
@@ -38,7 +40,14 @@ export default function FeaturedWorkSection({ initialProjects }: { initialProjec
         </Link>
       </div>
 
-      {projects.length === 0 ? (
+      {isLoading ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="skeleton col-span-1 md:col-span-2 h-[400px] sm:h-[500px]" />
+          <div className="skeleton h-[350px] sm:h-[400px] md:h-[500px]" />
+          <div className="skeleton h-[350px] sm:h-[400px] md:h-[500px]" />
+          <div className="skeleton h-[350px] sm:h-[400px] md:h-[500px]" />
+        </div>
+      ) : projects.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-24 text-center border border-white/5 rounded-[var(--radius-container)] bg-white/5">
           <h3 className="text-2xl font-bold mb-3">Coming Soon...</h3>
           <p className="text-[var(--color-secondary)] max-w-sm">
@@ -67,13 +76,8 @@ export default function FeaturedWorkSection({ initialProjects }: { initialProjec
                     <div className="w-full h-full bg-gradient-to-br from-neutral-800 to-black opacity-80" />
                   )}
                 </div>
-                {/* Subtle overall darkening */}
                 <div className="absolute inset-0 bg-black/10 group-hover:bg-black/0 transition-colors duration-500 z-10" />
-                
-                {/* Glassmorphic Gradient Mask */}
                 <div className="absolute inset-x-0 bottom-0 h-[70%] blur-gradient-overlay z-10" />
-                
-                {/* Glassmorphic Tint */}
                 <div className="absolute inset-x-0 bottom-0 h-[70%] bg-gradient-to-t from-black/80 via-black/30 to-transparent z-10" />
                 
                 <div className={`absolute inset-0 flex flex-col justify-end z-20 ${isLarge ? 'p-8 md:p-12' : 'p-6 md:p-10'}`}>

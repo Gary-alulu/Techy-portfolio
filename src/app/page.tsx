@@ -15,7 +15,7 @@ export default async function Home() {
       <HomeHero />
 
       {/* FEATURED WORK */}
-      <FeaturedWorkSection initialProjects={projects} />
+      <FeaturedWorkSection initialProjects={projects.length > 0 ? projects : undefined} />
 
       {/* CREATIVE PROCESS */}
       <HomeProcess />

@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import { Analytics } from "@vercel/analytics/react";
 import "./globals.css";
@@ -12,6 +12,7 @@ const inter = Inter({
   variable: "--font-inter",
   subsets: ["latin"],
   display: "swap",
+  weight: ["400", "500", "600", "700"],
 });
 
 export const metadata: Metadata = {
@@ -31,6 +32,12 @@ export const metadata: Metadata = {
   },
 };
 
+export const viewport: Viewport = {
+  themeColor: "#0D0D0D",
+  width: "device-width",
+  initialScale: 1,
+};
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -38,11 +45,13 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={`${inter.variable} antialiased dark`} suppressHydrationWarning>
+      <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link rel="preconnect" href="https://www.google.com" />
+      </head>
       <body className="min-h-screen flex flex-col relative selection:bg-[var(--color-accent-orange)] selection:text-white">
         <Providers>
-          {/* Noise overlay */}
-          <div className="fixed inset-0 pointer-events-none z-50 opacity-[0.05] bg-[url('/noise.png')]"></div>
-          
           <LoadingScreen />
           <ClientWidgets />
           <Navigation />
@@ -56,4 +65,3 @@ export default function RootLayout({
     </html>
   );
 }
-

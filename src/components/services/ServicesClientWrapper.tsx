@@ -13,10 +13,9 @@ import type { ServiceType } from "@/app/services/page";
 
 export default function ServicesClientWrapper({ initialProjects }: { initialProjects?: any[] } = {}) {
   const [selectedServices, setSelectedServices] = useState<ServiceType[]>([]);
-  const [projects, setProjects] = useState<any[]>(initialProjects || []);
+  const [projects, setProjects] = useState<any[]>([]);
 
   useEffect(() => {
-    if (initialProjects && initialProjects.length > 0) return;
     fetch("/api/projects")
       .then((res) => res.json())
       .then((data) => {
@@ -25,7 +24,7 @@ export default function ServicesClientWrapper({ initialProjects }: { initialProj
         }
       })
       .catch(() => {});
-  }, [initialProjects]);
+  }, []);
 
   return (
     <>

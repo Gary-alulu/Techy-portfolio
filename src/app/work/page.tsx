@@ -10,5 +10,5 @@ export const revalidate = 60;
 
 export default async function WorkPage() {
   const projects = await getProjects();
-  return <WorkContent activeCategory="All" projects={projects} />;
+  return <WorkContent activeCategory="All" projects={projects.length > 0 ? projects : undefined} />;
 }

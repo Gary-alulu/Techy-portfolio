@@ -12,7 +12,7 @@ export default async function ServicesPage() {
   return (
     <div className="pb-24 pt-32">
       <HeroSection />
-      <ServicesClientWrapper initialProjects={projects} />
+      <ServicesClientWrapper initialProjects={projects.length > 0 ? projects : undefined} />
       <FAQs />
       <FinalCTA />
     </div>

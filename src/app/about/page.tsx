@@ -22,7 +22,11 @@ export const metadata = {
   description: "Learn more about my design philosophy, creative journey, and the tools I use to build premium digital experiences.",
 };
 
-const SectionFallback = () => <div className="min-h-[150px] w-full" />;
+const SectionFallback = ({ height = "min-h-[150px]" }: { height?: string }) => (
+  <div className={`py-16 ${height} w-full`}>
+    <div className={`skeleton w-full ${height}`} />
+  </div>
+);
 
 export default function AboutPage() {
   return (
@@ -35,31 +39,31 @@ export default function AboutPage() {
         <DesignPhilosophy />
         
         {/* Lazy Loaded Sections with Suspense boundaries */}
-        <Suspense fallback={<SectionFallback />}>
+        <Suspense fallback={<SectionFallback height="min-h-[300px]" />}>
           <EvolutionTimeline />
         </Suspense>
 
-        <Suspense fallback={<SectionFallback />}>
+        <Suspense fallback={<SectionFallback height="min-h-[400px]" />}>
           <BentoExpertise />
         </Suspense>
 
-        <Suspense fallback={<SectionFallback />}>
+        <Suspense fallback={<SectionFallback height="min-h-[350px]" />}>
           <CreativeProcess />
         </Suspense>
 
-        <Suspense fallback={<SectionFallback />}>
+        <Suspense fallback={<SectionFallback height="min-h-[250px]" />}>
           <FloatingTools />
         </Suspense>
 
-        <Suspense fallback={<SectionFallback />}>
+        <Suspense fallback={<SectionFallback height="min-h-[200px]" />}>
           <PremiumStats />
         </Suspense>
 
-        <Suspense fallback={<SectionFallback />}>
+        <Suspense fallback={<SectionFallback height="min-h-[300px]" />}>
           <BehindTheScenes />
         </Suspense>
 
-        <Suspense fallback={<SectionFallback />}>
+        <Suspense fallback={<SectionFallback height="min-h-[250px]" />}>
           <FunFacts />
         </Suspense>
 

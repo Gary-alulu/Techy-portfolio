@@ -1,11 +1,21 @@
 "use client";
 
 import { motion, useScroll, useTransform } from "framer-motion";
-import Image from "next/image";
 import Link from "next/link";
-import { useRef } from "react";
+import { useRef, useState, useEffect } from "react";
 import WatermarkedImage from "@/components/ui/WatermarkedImage";
 import { ArrowLeft, ArrowUpRight, Code2, PenTool, Play } from "lucide-react";
+
+type PreviewData = { imageUrl: string | null; title: string | null };
+
+async function fetchPreview(url: string): Promise<PreviewData> {
+  try {
+    const res = await fetch(`/api/preview?url=${encodeURIComponent(url)}`);
+    return await res.json();
+  } catch {
+    return { imageUrl: null, title: null };
+  }
+}
 
 export function ProjectDetail({ project }: { project: any }) {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -16,6 +26,19 @@ export function ProjectDetail({ project }: { project: any }) {
 
   const y = useTransform(scrollYProgress, [0, 1], ["0%", "50%"]);
   const opacity = useTransform(scrollYProgress, [0, 0.5], [1, 0]);
+
+  const [previews, setPreviews] = useState<Record<string, PreviewData>>({});
+
+  useEffect(() => {
+    const urls: string[] = [];
+    if (project.liveUrl) urls.push(project.liveUrl);
+    if (project.githubUrl) urls.push(project.githubUrl);
+    if (project.prototypeUrl) urls.push(project.prototypeUrl);
+    urls.forEach(async (url) => {
+      const data = await fetchPreview(url);
+      setPreviews((prev) => ({ ...prev, [url]: data }));
+    });
+  }, [project.liveUrl, project.githubUrl, project.prototypeUrl]);
 
   if (!project) return null;
 
@@ -134,40 +157,76 @@ export function ProjectDetail({ project }: { project: any }) {
           >
             {project.liveUrl && (
               <a href={project.liveUrl} target="_blank" rel="noopener noreferrer" className="group relative overflow-hidden rounded-[2rem] bg-neutral-900 border border-white/10 p-8 flex flex-col justify-between aspect-square hover:border-white/30 transition-colors">
-                <div className="absolute inset-0 bg-gradient-to-br from-[var(--color-accent-blue)]/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                <div className="flex justify-between items-start z-10">
+                {previews[project.liveUrl]?.imageUrl ? (
+                  <>
+                    <img src={previews[project.liveUrl].imageUrl!} alt="" className="absolute inset-0 w-full h-full object-cover opacity-20 group-hover:opacity-30 group-hover:scale-105 transition-all duration-700" />
+                    <div className="absolute inset-0 bg-gradient-to-br from-[var(--color-accent-blue)]/30 via-neutral-900/80 to-neutral-900/95" />
+                  </>
+                ) : (
+                  <div className="absolute inset-0 bg-gradient-to-br from-[var(--color-accent-blue)]/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                )}
+                <div className="flex justify-between items-start z-10 relative">
                   <span className="glass-pill px-4 py-2 text-xs font-semibold tracking-widest uppercase text-white/80">Live Site</span>
                   <div className="w-12 h-12 rounded-full border border-white/20 flex items-center justify-center group-hover:bg-white group-hover:text-black transition-colors duration-300">
                     <ArrowUpRight className="w-5 h-5 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
                   </div>
                 </div>
-                <h3 className="text-3xl md:text-4xl font-bold z-10">View<br/>Production</h3>
+                <div className="z-10 relative">
+                  <h3 className="text-3xl md:text-4xl font-bold">View<br/>Production</h3>
+                  {previews[project.liveUrl]?.title && (
+                    <p className="text-white/40 text-sm mt-2 truncate max-w-[200px]">{previews[project.liveUrl].title}</p>
+                  )}
+                </div>
               </a>
             )}
             
             {project.githubUrl && (
               <a href={project.githubUrl} target="_blank" rel="noopener noreferrer" className="group relative overflow-hidden rounded-[2rem] bg-neutral-900 border border-white/10 p-8 flex flex-col justify-between aspect-square hover:border-white/30 transition-colors">
-                <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                <div className="flex justify-between items-start z-10">
+                {previews[project.githubUrl]?.imageUrl ? (
+                  <>
+                    <img src={previews[project.githubUrl].imageUrl!} alt="" className="absolute inset-0 w-full h-full object-cover opacity-20 group-hover:opacity-30 group-hover:scale-105 transition-all duration-700" />
+                    <div className="absolute inset-0 bg-gradient-to-br from-white/20 via-neutral-900/80 to-neutral-900/95" />
+                  </>
+                ) : (
+                  <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                )}
+                <div className="flex justify-between items-start z-10 relative">
                   <span className="glass-pill px-4 py-2 text-xs font-semibold tracking-widest uppercase text-white/80">Repository</span>
                   <div className="w-12 h-12 rounded-full border border-white/20 flex items-center justify-center group-hover:bg-white group-hover:text-black transition-colors duration-300">
                     <Code2 className="w-5 h-5" />
                   </div>
                 </div>
-                <h3 className="text-3xl md:text-4xl font-bold z-10">Source<br/>Code</h3>
+                <div className="z-10 relative">
+                  <h3 className="text-3xl md:text-4xl font-bold">Source<br/>Code</h3>
+                  {previews[project.githubUrl]?.title && (
+                    <p className="text-white/40 text-sm mt-2 truncate max-w-[200px]">{previews[project.githubUrl].title}</p>
+                  )}
+                </div>
               </a>
             )}
 
             {project.prototypeUrl && (
               <a href={project.prototypeUrl} target="_blank" rel="noopener noreferrer" className="group relative overflow-hidden rounded-[2rem] bg-neutral-900 border border-white/10 p-8 flex flex-col justify-between aspect-square hover:border-white/30 transition-colors">
-                <div className="absolute inset-0 bg-gradient-to-br from-[#F24E1E]/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                <div className="flex justify-between items-start z-10">
+                {previews[project.prototypeUrl]?.imageUrl ? (
+                  <>
+                    <img src={previews[project.prototypeUrl].imageUrl!} alt="" className="absolute inset-0 w-full h-full object-cover opacity-20 group-hover:opacity-30 group-hover:scale-105 transition-all duration-700" />
+                    <div className="absolute inset-0 bg-gradient-to-br from-[#F24E1E]/30 via-neutral-900/80 to-neutral-900/95" />
+                  </>
+                ) : (
+                  <div className="absolute inset-0 bg-gradient-to-br from-[#F24E1E]/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                )}
+                <div className="flex justify-between items-start z-10 relative">
                   <span className="glass-pill px-4 py-2 text-xs font-semibold tracking-widest uppercase text-white/80">Design</span>
                   <div className="w-12 h-12 rounded-full border border-white/20 flex items-center justify-center group-hover:bg-[#F24E1E] group-hover:text-white transition-colors duration-300 border-[#F24E1E]/30">
                     <PenTool className="w-5 h-5" />
                   </div>
                 </div>
-                <h3 className="text-3xl md:text-4xl font-bold z-10">Figma<br/>Prototype</h3>
+                <div className="z-10 relative">
+                  <h3 className="text-3xl md:text-4xl font-bold">Figma<br/>Prototype</h3>
+                  {previews[project.prototypeUrl]?.title && (
+                    <p className="text-white/40 text-sm mt-2 truncate max-w-[200px]">{previews[project.prototypeUrl].title}</p>
+                  )}
+                </div>
               </a>
             )}
           </motion.div>
