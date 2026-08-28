@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { compressImage } from "@/lib/imageCompression";
+import { uploadImages } from "@/lib/uploadImages";
 
 export default function NewProject() {
   const router = useRouter();
@@ -42,31 +43,49 @@ export default function NewProject() {
     e.preventDefault();
     setLoading(true);
     
-    const formData = new FormData(e.currentTarget);
-    const rawSlug = formData.get("slug") as string || "";
-    const sanitizedSlug = rawSlug.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
-
-    const data = {
-      title: formData.get("title"),
-      slug: sanitizedSlug,
-      category: formData.get("category"),
-      subCategory: formData.get("subCategory") || undefined,
-      shortDescription: formData.get("shortDescription"),
-      content: content,
-      thumbnailUrl: thumbnailBase64, // using the compressed base64
-      bannerUrl: bannerBase64,       // added bannerUrl
-      galleryUrls: galleryBase64,    // using the compressed base64s
-      liveUrl: formData.get("liveUrl"),
-      githubUrl: formData.get("githubUrl"),
-      prototypeUrl: formData.get("prototypeUrl"),
-      videoUrl: formData.get("videoUrl"),
-      technologies: formData.get("technologies")?.toString().split(",").map(s => s.trim()).filter(Boolean),
-      toolsUsed: formData.get("toolsUsed")?.toString().split(",").map(s => s.trim()).filter(Boolean),
-      isDraft: formData.get("isDraft") === "on",
-      featured: formData.get("featured") === "on",
-    };
-
     try {
+      const formData = new FormData(e.currentTarget);
+      const rawSlug = formData.get("slug") as string || "";
+      const sanitizedSlug = rawSlug.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
+
+      // Upload images to object storage before saving
+      const uploads: { name: string; data: string }[] = [];
+      if (thumbnailBase64) uploads.push({ name: "thumbnail", data: thumbnailBase64 });
+      if (bannerBase64) uploads.push({ name: "banner", data: bannerBase64 });
+      galleryBase64.forEach((b64, i) => uploads.push({ name: `gallery-${i}`, data: b64 }));
+
+      let thumbnailUrl = "";
+      let bannerUrl = "";
+      let galleryUrls: string[] = [];
+      if (uploads.length > 0) {
+        const results = await uploadImages(uploads);
+        thumbnailUrl = results.find(r => r.name === "thumbnail")?.url || "";
+        bannerUrl = results.find(r => r.name === "banner")?.url || "";
+        galleryUrls = galleryBase64
+          .map((_, i) => results.find(r => r.name === `gallery-${i}`)?.url || "")
+          .filter(Boolean);
+      }
+
+      const data = {
+        title: formData.get("title"),
+        slug: sanitizedSlug,
+        category: formData.get("category"),
+        subCategory: formData.get("subCategory") || undefined,
+        shortDescription: formData.get("shortDescription"),
+        content: content,
+        thumbnailUrl,
+        bannerUrl,
+        galleryUrls,
+        liveUrl: formData.get("liveUrl"),
+        githubUrl: formData.get("githubUrl"),
+        prototypeUrl: formData.get("prototypeUrl"),
+        videoUrl: formData.get("videoUrl"),
+        technologies: formData.get("technologies")?.toString().split(",").map(s => s.trim()).filter(Boolean),
+        toolsUsed: formData.get("toolsUsed")?.toString().split(",").map(s => s.trim()).filter(Boolean),
+        isDraft: formData.get("isDraft") === "on",
+        featured: formData.get("featured") === "on",
+      };
+
       const res = await fetch("/api/projects", {
         method: "POST",
         headers: { "Content-Type": "application/json" },

@@ -17,6 +17,7 @@ const PremiumStats = dynamic(() => import("@/components/about/PremiumStats").the
 const BehindTheScenes = dynamic(() => import("@/components/about/BehindTheScenes").then(mod => mod.BehindTheScenes));
 const FunFacts = dynamic(() => import("@/components/about/FunFacts").then(mod => mod.FunFacts));
 
+export const revalidate = 60;
 export const metadata = {
   title: "About",
   description: "Learn more about my design philosophy, creative journey, and the tools I use to build premium digital experiences.",

@@ -43,12 +43,17 @@ export async function GET(req: Request) {
     await connectToDatabase();
     const { searchParams } = new URL(req.url);
     const category = searchParams.get("category");
+    const subCategory = searchParams.get("subCategory");
     const featured = searchParams.get("featured");
 
     const query: any = { isDraft: false };
     
     if (category && category.toLowerCase() !== "all") {
       query.category = category;
+    }
+    
+    if (subCategory && subCategory.toLowerCase() !== "all") {
+      query.subCategory = subCategory;
     }
     
     if (featured === "true") {

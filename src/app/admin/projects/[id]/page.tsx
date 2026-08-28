@@ -3,6 +3,9 @@
 import { useState, useEffect, use } from "react";
 import { useRouter } from "next/navigation";
 import { compressImage } from "@/lib/imageCompression";
+import { uploadImages } from "@/lib/uploadImages";
+
+const isDataUri = (s: string) => /^data:/.test(s || "");
 
 export default function EditProject({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter();
@@ -84,31 +87,55 @@ export default function EditProject({ params }: { params: Promise<{ id: string }
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setLoading(true);
-    
-    const formData = new FormData(e.currentTarget);
-    const rawSlug = formData.get("slug") as string || "";
-    const sanitizedSlug = rawSlug.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
-
-    const data = {
-      title: formData.get("title"),
-      slug: sanitizedSlug,
-      category: formData.get("category"),
-      subCategory: formData.get("subCategory") || undefined,
-      shortDescription: formData.get("shortDescription"),
-      content: formData.get("content"),
-      thumbnailUrl: thumbnailBase64,
-      bannerUrl: bannerBase64,
-      galleryUrls: galleryBase64,
-      liveUrl: formData.get("liveUrl"),
-      githubUrl: formData.get("githubUrl"),
-      prototypeUrl: formData.get("prototypeUrl"),
-      videoUrl: formData.get("videoUrl"),
-      technologies: formData.get("technologies")?.toString().split(",").map(s => s.trim()).filter(Boolean),
-      toolsUsed: formData.get("toolsUsed")?.toString().split(",").map(s => s.trim()).filter(Boolean),
-      isDraft: formData.get("isDraft") === "on",
-    };
 
     try {
+      const formData = new FormData(e.currentTarget);
+      const rawSlug = formData.get("slug") as string || "";
+      const sanitizedSlug = rawSlug.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
+
+      // Upload only newly added images (data URIs) to object storage; keep existing URLs
+      const newThumb = isDataUri(thumbnailBase64) ? thumbnailBase64 : "";
+      const newBanner = isDataUri(bannerBase64) ? bannerBase64 : "";
+      const newGallery = galleryBase64.map((g, i) => ({ g, i })).filter(({ g }) => isDataUri(g));
+
+      const uploads: { name: string; data: string }[] = [];
+      if (newThumb) uploads.push({ name: "thumbnail", data: newThumb });
+      if (newBanner) uploads.push({ name: "banner", data: newBanner });
+      newGallery.forEach(({ g, i }) => uploads.push({ name: `gallery-${i}`, data: g }));
+
+      let thumbnailUrl = isDataUri(thumbnailBase64) ? "" : thumbnailBase64;
+      let bannerUrl = isDataUri(bannerBase64) ? "" : bannerBase64;
+      let galleryUrls = galleryBase64.map((g) => (isDataUri(g) ? "" : g));
+
+      if (uploads.length > 0) {
+        const results = await uploadImages(uploads);
+        thumbnailUrl = newThumb ? results.find(r => r.name === "thumbnail")?.url || thumbnailUrl : thumbnailUrl;
+        bannerUrl = newBanner ? results.find(r => r.name === "banner")?.url || bannerUrl : bannerUrl;
+        for (const { i } of newGallery) {
+          const r = results.find(x => x.name === `gallery-${i}`);
+          if (r?.url) galleryUrls[i] = r.url;
+        }
+      }
+
+      const data = {
+        title: formData.get("title"),
+        slug: sanitizedSlug,
+        category: formData.get("category"),
+        subCategory: formData.get("subCategory") || undefined,
+        shortDescription: formData.get("shortDescription"),
+        content: formData.get("content"),
+        thumbnailUrl,
+        bannerUrl,
+        galleryUrls: galleryUrls.filter(Boolean),
+        liveUrl: formData.get("liveUrl"),
+        githubUrl: formData.get("githubUrl"),
+        prototypeUrl: formData.get("prototypeUrl"),
+        videoUrl: formData.get("videoUrl"),
+        technologies: formData.get("technologies")?.toString().split(",").map(s => s.trim()).filter(Boolean),
+        toolsUsed: formData.get("toolsUsed")?.toString().split(",").map(s => s.trim()).filter(Boolean),
+        isDraft: formData.get("isDraft") === "on",
+      };
+
       const res = await fetch(`/api/projects/${id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },

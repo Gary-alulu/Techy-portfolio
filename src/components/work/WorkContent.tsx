@@ -14,6 +14,10 @@ const CATEGORIES = [
   { name: "Motion Graphics" }
 ];
 
+const SUB_CATEGORIES: Record<string, string[]> = {
+  "Brand Identity": ["Graphic Design", "Print Media"]
+};
+
 export interface Project {
   _id: string;
   title: string;
@@ -29,6 +33,7 @@ let cachedProjects: Project[] | null = null;
 export function WorkContent({ activeCategory, projects: initialProjects }: { activeCategory: string, projects?: Project[] }) {
   const [projects, setProjects] = useState<Project[]>(initialProjects || cachedProjects || []);
   const [active, setActive] = useState(activeCategory);
+  const [activeSub, setActiveSub] = useState("All");
   const [isLoading, setIsLoading] = useState(!initialProjects && !cachedProjects);
 
   useEffect(() => {
@@ -57,8 +62,12 @@ export function WorkContent({ activeCategory, projects: initialProjects }: { act
   }, [initialProjects]);
 
   const filteredProjects = useMemo(
-    () => projects.filter((p) => active === "All" || p.category === active),
-    [projects, active]
+    () => projects.filter((p) => {
+      if (active !== "All" && p.category !== active) return false;
+      if (activeSub !== "All" && p.subCategory !== activeSub) return false;
+      return true;
+    }),
+    [projects, active, activeSub]
   );
 
   return (
@@ -86,6 +95,25 @@ export function WorkContent({ activeCategory, projects: initialProjects }: { act
           </button>
         ))}
       </div>
+
+      {/* Sub Category Filter (e.g. Print Media under Brand Identity) */}
+      {SUB_CATEGORIES[active] && (
+        <div className="-mt-6 mb-12 flex items-center gap-2 overflow-x-auto pb-4 no-scrollbar">
+          {["All", ...SUB_CATEGORIES[active]].map((sub) => (
+            <button
+              key={sub}
+              onClick={() => setActiveSub(sub)}
+              className={`px-5 py-1.5 rounded-full whitespace-nowrap transition-all duration-300 cursor-pointer text-sm ${
+                activeSub === sub
+                  ? "bg-white/90 text-black font-medium"
+                  : "glass-pill text-[var(--color-secondary)] hover:text-white hover:bg-white/10"
+              }`}
+            >
+              {sub}
+            </button>
+          ))}
+        </div>
+      )}
 
       {/* Project Grid */}
       {isLoading ? (

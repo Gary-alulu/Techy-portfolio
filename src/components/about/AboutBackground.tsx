@@ -20,9 +20,6 @@ export function AboutBackground() {
         }}
       />
 
-      {/* Layer 3: Noise texture */}
-      <div className="absolute inset-0 opacity-[0.08]" style={{ backgroundImage: "url('https://upload.wikimedia.org/wikipedia/commons/7/76/1k_Dissolve_Noise_Texture.png')", backgroundRepeat: "repeat" }} />
-
       {/* Layer 4: Blurred glowing blobs */}
       <motion.div 
         animate={{ x: [0, 60, 0], y: [0, -40, 0] }}

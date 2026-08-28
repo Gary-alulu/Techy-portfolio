@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
+import { headers } from "next/headers";
 import { Analytics } from "@vercel/analytics/react";
 import "./globals.css";
 import Navigation from "@/components/layout/Navigation";
@@ -38,11 +39,14 @@ export const viewport: Viewport = {
   initialScale: 1,
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const headerList = await headers();
+  const isAdminRoute = headerList.get("x-is-admin-route") === "1";
+
   return (
     <html lang="en" className={`${inter.variable} antialiased dark`} suppressHydrationWarning>
       <head>
@@ -54,11 +58,17 @@ export default function RootLayout({
         <Providers>
           <LoadingScreen />
           <ClientWidgets />
-          <Navigation />
-          <main className="flex-grow pt-[144px] px-6 sm:px-12 lg:px-16 max-w-7xl mx-auto w-full">
-            {children}
-          </main>
-          <Footer />
+          {isAdminRoute ? (
+            <>{children}</>
+          ) : (
+            <>
+              <Navigation />
+              <main className="flex-grow pt-[144px] px-6 sm:px-12 lg:px-16 max-w-7xl mx-auto w-full">
+                {children}
+              </main>
+              <Footer />
+            </>
+          )}
         </Providers>
         <Analytics />
       </body>

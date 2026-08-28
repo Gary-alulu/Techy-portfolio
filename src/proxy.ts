@@ -38,7 +38,14 @@ export async function proxy(request: NextRequest) {
       const secret = process.env.JWT_SECRET || "default_secret_key";
       const key = new TextEncoder().encode(secret);
       await jwtVerify(token, key, { algorithms: ["HS256"] });
-      
+
+      // Flag admin routes so the root layout can skip the public site chrome
+      if (isProtectedPath) {
+        const reqHeaders = new Headers(request.headers);
+        reqHeaders.set("x-is-admin-route", "1");
+        return NextResponse.next({ request: { headers: reqHeaders } });
+      }
+
       return NextResponse.next();
     } catch (error) {
       if (isApiRoute) {
