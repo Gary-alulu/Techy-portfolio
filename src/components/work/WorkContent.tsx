@@ -136,7 +136,7 @@ export function WorkContent({ activeCategory, projects: initialProjects }: { act
       ) : (
         <motion.div layout className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           <AnimatePresence mode="popLayout">
-            {filteredProjects.map((project) => (
+            {filteredProjects.map((project, index) => (
               <motion.div
                 key={project._id}
                 layout
@@ -153,6 +153,7 @@ export function WorkContent({ activeCategory, projects: initialProjects }: { act
                         alt={project.title} 
                         fill 
                         quality={100}
+                        priority={index < 4}
                         sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                         className="object-cover opacity-80" 
                       />

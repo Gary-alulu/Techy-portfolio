@@ -46,7 +46,7 @@ export default function FeaturedWork({ selected, projects }: Props) {
       ) : (
         <motion.div layout className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <AnimatePresence>
-            {filtered.map((item) => (
+            {filtered.map((item, index) => (
               <motion.div
                 key={item._id}
                 layout
@@ -63,6 +63,7 @@ export default function FeaturedWork({ selected, projects }: Props) {
                         alt={item.title} 
                         fill 
                         quality={100}
+                        priority={index < 2}
                         sizes="(max-width: 768px) 100vw, 50vw"
                         className="object-cover opacity-80" 
                       />

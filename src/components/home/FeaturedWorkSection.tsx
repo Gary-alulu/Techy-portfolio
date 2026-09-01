@@ -71,7 +71,7 @@ export default function FeaturedWorkSection({ initialProjects }: { initialProjec
               >
                 <div className="absolute inset-0 bg-neutral-900/50 group-hover:scale-105 transition-transform duration-700 ease-out z-0">
                   {project.thumbnailUrl ? (
-                    <Image src={project.thumbnailUrl} alt={project.title} fill className="object-cover opacity-80" />
+                    <Image src={project.thumbnailUrl} alt={project.title} fill className="object-cover opacity-80" priority={index < 2} />
                   ) : (
                     <div className="w-full h-full bg-gradient-to-br from-neutral-800 to-black opacity-80" />
                   )}
