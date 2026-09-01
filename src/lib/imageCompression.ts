@@ -1,4 +1,4 @@
-export async function compressImage(file: File, maxWidth = 1920, quality = 0.8): Promise<string> {
+export async function compressImage(file: File, maxWidth = 1920, quality = 0.95): Promise<string> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.readAsDataURL(file);
@@ -22,8 +22,9 @@ export async function compressImage(file: File, maxWidth = 1920, quality = 0.8):
 
         ctx?.drawImage(img, 0, 0, width, height);
         
-        // Export to highly compressed JPEG base64
-        const dataUrl = canvas.toDataURL("image/jpeg", quality);
+        // Preserve original format (e.g., image/png, image/webp) or fallback to jpeg
+        const mimeType = file.type || "image/jpeg";
+        const dataUrl = canvas.toDataURL(mimeType, quality);
         resolve(dataUrl);
       };
       img.onerror = (error) => reject(error);

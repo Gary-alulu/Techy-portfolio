@@ -42,7 +42,7 @@ export default function EditProject({ params }: { params: Promise<{ id: string }
   const handleThumbnailChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      const base64 = await compressImage(file, 800, 0.7);
+      const base64 = await compressImage(file, 800, 0.95);
       setThumbnailBase64(base64);
     }
   };
@@ -50,14 +50,14 @@ export default function EditProject({ params }: { params: Promise<{ id: string }
   const handleBannerChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      const base64 = await compressImage(file, 1920, 0.8);
+      const base64 = await compressImage(file, 1920, 0.95);
       setBannerBase64(base64);
     }
   };
 
   const handleGalleryChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
-    const base64s = await Promise.all(files.map(f => compressImage(f, 1600, 0.8)));
+    const base64s = await Promise.all(files.map(f => compressImage(f, 1600, 0.95)));
     setGalleryBase64([...galleryBase64, ...base64s]); // Append to existing
   };
 

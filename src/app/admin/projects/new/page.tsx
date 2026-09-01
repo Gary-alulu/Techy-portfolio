@@ -19,7 +19,7 @@ export default function NewProject() {
     const file = e.target.files?.[0];
     if (file) {
       // Compress thumbnail aggressively for fast loading
-      const base64 = await compressImage(file, 800, 0.7);
+      const base64 = await compressImage(file, 800, 0.95);
       setThumbnailBase64(base64);
     }
   };
@@ -27,7 +27,7 @@ export default function NewProject() {
   const handleBannerChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      const base64 = await compressImage(file, 1920, 0.8);
+      const base64 = await compressImage(file, 1920, 0.95);
       setBannerBase64(base64);
     }
   };
@@ -35,7 +35,7 @@ export default function NewProject() {
   const handleGalleryChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
     // Compress gallery images a bit larger
-    const base64s = await Promise.all(files.map(f => compressImage(f, 1600, 0.8)));
+    const base64s = await Promise.all(files.map(f => compressImage(f, 1600, 0.95)));
     setGalleryBase64(base64s);
   };
 
