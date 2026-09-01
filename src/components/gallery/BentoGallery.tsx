@@ -3,6 +3,7 @@
 import { useRef } from "react";
 import { motion, useScroll, useTransform } from "framer-motion";
 import Image from "next/image";
+import ExpandableImage from "@/components/ui/ExpandableImage";
 import Link from "next/link";
 import { IProject } from "@/models/Project";
 import { ArrowUpRight } from "lucide-react";
@@ -54,11 +55,10 @@ export default function BentoGallery({ projects }: { projects: IProject[] }) {
           <div className="absolute inset-x-0 bottom-0 h-[80%] bg-gradient-to-t from-black/90 via-black/40 to-transparent z-10 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-500" />
           
           {project.thumbnailUrl ? (
-            <Image 
+            <ExpandableImage 
               src={project.thumbnailUrl} 
               alt={project.title} 
               fill 
-              quality={100}
               sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
               className="object-cover transition-transform duration-700 group-hover:scale-105 z-0"
             />

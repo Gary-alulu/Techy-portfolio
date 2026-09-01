@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import Image from "next/image";
+import ExpandableImage from "@/components/ui/ExpandableImage";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import type { BTSMedia } from "@/lib/getBehindTheScenes";
 
@@ -35,7 +36,7 @@ export function BTSGallery({ media }: { media: BTSMedia[] }) {
             className="w-full h-full object-contain"
           />
         ) : (
-          <Image
+          <ExpandableImage
             src={current.media_url}
             alt={current.caption || "Behind the scenes media"}
             fill
