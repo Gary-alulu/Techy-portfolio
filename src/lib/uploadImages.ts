@@ -12,7 +12,7 @@ export async function uploadImages(files: { name: string; data: string }[]): Pro
 
   const json = await res.json().catch(() => ({}));
   if (!res.ok || !json.success) {
-    throw new Error(json.error || "Image upload failed. Is BLOB_READ_WRITE_TOKEN configured?");
+    throw new Error(json.error || "Image upload failed. Are Cloudinary credentials configured?");
   }
   return json.uploaded as UploadResult[];
 }

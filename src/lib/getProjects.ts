@@ -27,11 +27,12 @@ export async function getProjects(category?: string, limit?: number, subCategory
     }
   })();
 
-  // 2.5s strict timeout so build/render NEVER hangs
+  // 2. Strict timeout so build/render NEVER hangs on slow DB connections.
+  //    Shells render instantly; client components fetch real data from /api/projects.
   const timeoutPromise = new Promise<any[]>((resolve) => {
     setTimeout(() => {
       resolve([]);
-    }, 2500);
+    }, 1000);
   });
 
   return Promise.race([fetchPromise, timeoutPromise]);

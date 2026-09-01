@@ -1,5 +1,5 @@
 import mongoose from 'mongoose';
-import { put } from '@vercel/blob';
+import { v2 as cloudinary } from 'cloudinary';
 import fs from 'fs';
 
 // Load .env.local manually (dotenv/config doesn't read .env.local by default)
@@ -22,10 +22,16 @@ if (!MONGODB_URI) {
   process.exit(1);
 }
 
-if (!process.env.BLOB_READ_WRITE_TOKEN) {
-  console.error('BLOB_READ_WRITE_TOKEN not set. No images will be migrated.');
+if (!process.env.CLOUDINARY_CLOUD_NAME || !process.env.CLOUDINARY_API_KEY || !process.env.CLOUDINARY_API_SECRET) {
+  console.error('Cloudinary credentials not set (CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET). No images will be migrated.');
   process.exit(1);
 }
+
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
 
 const ProjectSchema = new mongoose.Schema({
   title: String,
@@ -43,20 +49,15 @@ const Project = mongoose.models.Project || mongoose.model("Project", ProjectSche
 const isDataUri = (s) => typeof s === 'string' && s.startsWith('data:');
 
 async function uploadDataUri(dataUri, name) {
-  const match = /^data:([^;]+);base64,(.+)$/.exec(dataUri);
-  if (!match) return dataUri; // not a valid data URI, keep as-is
-  const mimeType = match[1];
-  const buffer = Buffer.from(match[2], 'base64');
-  const ext = (mimeType.split('/')[1] || 'jpg').replace('jpeg', 'jpg').split('+')[0];
   const safeName = (name || 'image').replace(/[^a-zA-Z0-9-_]/g, '-').toLowerCase().slice(-40);
-  const fileName = `${Date.now()}-${safeName}.${ext}`;
-  const blob = await put(fileName, buffer, {
-    access: 'public',
-    contentType: mimeType,
-    addRandomSuffix: true,
-    cacheControlMaxAge: 60 * 60 * 24 * 365,
+  const fileName = `${Date.now()}-${safeName}`;
+  const result = await cloudinary.uploader.upload(dataUri, {
+    folder: 'portfolio',
+    public_id: fileName,
+    overwrite: false,
+    resource_type: 'auto',
   });
-  return blob.url;
+  return result.secure_url;
 }
 
 async function main() {
@@ -98,7 +99,7 @@ async function main() {
     }
   }
 
-  console.log(`Done. ${migrated} projects updated, ${imagesUploaded} images uploaded to Blob.`);
+  console.log(`Done. ${migrated} projects updated, ${imagesUploaded} images uploaded to Cloudinary.`);
   process.exit(0);
 }
 
