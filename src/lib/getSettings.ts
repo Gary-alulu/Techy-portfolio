@@ -9,7 +9,7 @@ export async function getSettings(): Promise<SiteSettings | null> {
   const fetchPromise = (async (): Promise<SiteSettings | null> => {
     try {
       await connectToDatabase();
-      const setting = await Setting.findOne().maxTimeMS(2000).lean();
+      const setting = await Setting.findOne().lean();
       return { priorityCategory: (setting as any)?.priorityCategory || "" };
     } catch (error) {
       console.error("Failed to fetch settings from database:", error);
@@ -17,9 +17,10 @@ export async function getSettings(): Promise<SiteSettings | null> {
     }
   })();
 
-  // Strict timeout so build/render NEVER hangs on slow DB connections.
+  // Bounded timeout so build/render never hangs on slow DB connections,
+  // while still giving cold serverless connections time to complete.
   const timeoutPromise = new Promise<null>((resolve) => {
-    setTimeout(() => resolve(null), 1000);
+    setTimeout(() => resolve(null), 4000);
   });
 
   return Promise.race([fetchPromise, timeoutPromise]);

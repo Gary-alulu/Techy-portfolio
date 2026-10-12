@@ -19,7 +19,7 @@ export async function getProjects(category?: string, limit?: number, subCategory
       if (limit) {
         dbQuery = dbQuery.limit(limit);
       }
-      const projects = await dbQuery.maxTimeMS(2000).lean();
+      const projects = await dbQuery.lean();
       return projects.map((p: any) => ({
         ...p,
         _id: p._id.toString(),
@@ -30,12 +30,13 @@ export async function getProjects(category?: string, limit?: number, subCategory
     }
   })();
 
-  // 2. Strict timeout so build/render NEVER hangs on slow DB connections.
-  //    Shells render instantly; client components fetch real data from /api/projects.
+  // Bounded timeout so build/render never hangs on slow DB connections,
+  //   while still giving cold serverless connections time to complete.
+  //   Client components can always refetch real data from /api/projects.
   const timeoutPromise = new Promise<any[]>((resolve) => {
     setTimeout(() => {
       resolve([]);
-    }, 1000);
+    }, 4000);
   });
 
   return Promise.race([fetchPromise, timeoutPromise]);

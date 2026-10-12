@@ -8,27 +8,56 @@ import { ArrowRight } from "lucide-react";
 export default function FeaturedWorkSection({ initialProjects, priorityCategory }: { initialProjects?: any[]; priorityCategory?: string }) {
   const [projects, setProjects] = useState<any[]>(initialProjects || []);
   const [isLoading, setIsLoading] = useState(!initialProjects);
+  const [displayCategory, setDisplayCategory] = useState(priorityCategory || "");
 
   useEffect(() => {
-    if (initialProjects) return;
     let cancelled = false;
-    const params = new URLSearchParams();
-    if (priorityCategory) params.set("category", priorityCategory);
-    params.set("excludeSubCategory", "Print Media");
-    fetch(`/api/projects?${params.toString()}`)
-      .then((res) => res.json())
+    const finish = () => {
+      if (!cancelled) setIsLoading(false);
+    };
+
+    const loadProjects = (category: string) => {
+      const params = new URLSearchParams();
+      if (category) params.set("category", category);
+      params.set("excludeSubCategory", "Print Media");
+      return fetch(`/api/projects?${params.toString()}`)
+        .then((res) => res.json())
+        .then((data) => {
+          if (!cancelled && data.success) {
+            setProjects(
+              data.projects
+                .slice(0, 4)
+                .map((p: any) => ({ ...p, _id: p._id?.toString?.() || p._id }))
+            );
+          }
+        })
+        .catch(() => {});
+    };
+
+    fetch("/api/settings")
+      .then((res) => res.json().catch(() => null))
       .then((data) => {
-        if (!cancelled && data.success) {
-          setProjects(
-            data.projects
-              .map((p: any) => ({ ...p, _id: p._id?.toString?.() || p._id }))
-              .slice(0, 4)
-          );
+        if (cancelled) return;
+        const realCategory = (data?.setting?.priorityCategory as string) || "";
+        setDisplayCategory(realCategory);
+
+        const serverUsedSameCategory =
+          initialProjects && (priorityCategory || "") === realCategory;
+        if (!serverUsedSameCategory) {
+          return loadProjects(realCategory);
         }
       })
-      .catch(() => {})
-      .finally(() => { if (!cancelled) setIsLoading(false); });
-    return () => { cancelled = true; };
+      .catch(() => {
+        if (cancelled) return;
+        if (!initialProjects) {
+          return loadProjects(priorityCategory || "");
+        }
+      })
+      .finally(() => finish());
+
+    return () => {
+      cancelled = true;
+    };
   }, [initialProjects, priorityCategory]);
 
   return (
@@ -37,8 +66,8 @@ export default function FeaturedWorkSection({ initialProjects, priorityCategory 
         <div>
           <h2 className="text-3xl font-bold mb-4">Selected Work</h2>
           <p className="text-[var(--color-secondary)]">
-            {priorityCategory
-              ? `Featured ${priorityCategory} work.`
+            {displayCategory
+              ? `Featured ${displayCategory} work.`
               : "A curated collection of my recent projects."}
           </p>
         </div>
