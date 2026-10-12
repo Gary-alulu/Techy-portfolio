@@ -15,7 +15,7 @@ export async function proxy(request: NextRequest) {
   
   // 2. Check if the path is a mutating API route
   const isApiRoute = pathname.startsWith("/api/");
-  const isMutatingMethod = ["POST", "PATCH", "DELETE"].includes(request.method);
+  const isMutatingMethod = ["POST", "PATCH", "PUT", "DELETE"].includes(request.method);
   
   // Don't protect /api/auth or public form submissions like POST /api/contact
   const isAuthRoute = pathname.startsWith("/api/auth");

@@ -5,14 +5,17 @@ import Link from "next/link";
 import Image from "next/image";
 import { ArrowRight } from "lucide-react";
 
-export default function FeaturedWorkSection({ initialProjects }: { initialProjects?: any[] }) {
+export default function FeaturedWorkSection({ initialProjects, priorityCategory }: { initialProjects?: any[]; priorityCategory?: string }) {
   const [projects, setProjects] = useState<any[]>(initialProjects || []);
   const [isLoading, setIsLoading] = useState(!initialProjects);
 
   useEffect(() => {
     if (initialProjects) return;
     let cancelled = false;
-    fetch("/api/projects")
+    const params = new URLSearchParams();
+    if (priorityCategory) params.set("category", priorityCategory);
+    params.set("excludeSubCategory", "Print Media");
+    fetch(`/api/projects?${params.toString()}`)
       .then((res) => res.json())
       .then((data) => {
         if (!cancelled && data.success) {
@@ -26,14 +29,18 @@ export default function FeaturedWorkSection({ initialProjects }: { initialProjec
       .catch(() => {})
       .finally(() => { if (!cancelled) setIsLoading(false); });
     return () => { cancelled = true; };
-  }, [initialProjects]);
+  }, [initialProjects, priorityCategory]);
 
   return (
     <section className="space-y-12">
       <div className="flex items-end justify-between">
         <div>
           <h2 className="text-3xl font-bold mb-4">Selected Work</h2>
-          <p className="text-[var(--color-secondary)]">A curated collection of my recent projects.</p>
+          <p className="text-[var(--color-secondary)]">
+            {priorityCategory
+              ? `Featured ${priorityCategory} work.`
+              : "A curated collection of my recent projects."}
+          </p>
         </div>
         <Link href="/work" className="hidden sm:flex items-center gap-2 hover:text-[var(--color-accent-orange)] transition-colors group">
           View All <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />

@@ -28,13 +28,38 @@ export interface Project {
   thumbnailUrl?: string;
 }
 
+export interface PrintMediaItem {
+  _id: string;
+  title: string;
+  imageUrl: string;
+  order?: number;
+}
+
 let cachedProjects: Project[] | null = null;
 
-export function WorkContent({ activeCategory, projects: initialProjects }: { activeCategory: string, projects?: Project[] }) {
+export function WorkContent({ activeCategory, projects: initialProjects, initialPrintMedia }: { activeCategory: string, projects?: Project[], initialPrintMedia?: PrintMediaItem[] }) {
   const [projects, setProjects] = useState<Project[]>(initialProjects || cachedProjects || []);
+  const [printMedia, setPrintMedia] = useState<PrintMediaItem[]>(initialPrintMedia || []);
   const [active, setActive] = useState(activeCategory);
   const [activeSub, setActiveSub] = useState("All");
   const [isLoading, setIsLoading] = useState(!initialProjects && !cachedProjects);
+
+  useEffect(() => {
+    if (initialPrintMedia) return;
+    let cancelled = false;
+    fetch("/api/print-media")
+      .then((res) => res.json())
+      .then((data) => {
+        if (!cancelled && data.success) {
+          setPrintMedia(
+            data.items.map((it: any) => ({ ...it, _id: it._id?.toString?.() || it._id }))
+          );
+        }
+      })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, [initialPrintMedia]);
+
 
   useEffect(() => {
     if (initialProjects && initialProjects.length > 0) {
@@ -69,6 +94,8 @@ export function WorkContent({ activeCategory, projects: initialProjects }: { act
     }),
     [projects, active, activeSub]
   );
+
+  const showingPrintMedia = active === "Brand Identity" && activeSub === "Print Media";
 
   return (
     <div className="pb-24">
@@ -115,8 +142,10 @@ export function WorkContent({ activeCategory, projects: initialProjects }: { act
         </div>
       )}
 
-      {/* Project Grid */}
-      {isLoading ? (
+      {/* Project Grid / Print Media Grid */}
+      {showingPrintMedia ? (
+        <PrintMediaGrid items={printMedia} isLoading={isLoading} />
+      ) : isLoading ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {[...Array(6)].map((_, i) => (
             <div key={i} className="skeleton h-[400px]" />
@@ -229,5 +258,70 @@ export function WorkContent({ activeCategory, projects: initialProjects }: { act
         </div>
       </div>
     </div>
+  );
+}
+
+function PrintMediaGrid({ items, isLoading }: { items: PrintMediaItem[]; isLoading: boolean }) {
+  if (isLoading) {
+    return (
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+        {[...Array(6)].map((_, i) => (
+          <div key={i} className="skeleton h-[400px]" />
+        ))}
+      </div>
+    );
+  }
+
+  if (items.length === 0) {
+    return (
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        className="flex flex-col items-center justify-center py-32 text-center border border-white/5 rounded-[var(--radius-container)] bg-white/5"
+      >
+        <h3 className="text-3xl font-bold mb-4">Coming Soon...</h3>
+        <p className="text-[var(--color-secondary)] max-w-md">
+          New print media pieces are currently being prepared. Check back later to see them!
+        </p>
+      </motion.div>
+    );
+  }
+
+  return (
+    <motion.div layout className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+      <AnimatePresence mode="popLayout">
+        {items.map((item, index) => (
+          <motion.figure
+            key={item._id}
+            layout
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.9 }}
+            transition={{ duration: 0.3 }}
+            className="group"
+          >
+            <div className="relative h-[400px] rounded-[var(--radius-container)] overflow-hidden border border-white/5 bg-neutral-900">
+              {item.imageUrl ? (
+                <Image
+                  src={item.imageUrl}
+                  alt={item.title}
+                  fill
+                  quality={100}
+                  priority={index < 4}
+                  sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                  className="object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
+                />
+              ) : (
+                <div className="w-full h-full bg-gradient-to-br from-neutral-800 to-black" />
+              )}
+              <div className="absolute inset-0 bg-black/10 group-hover:bg-black/0 transition-colors duration-500" />
+            </div>
+            <figcaption className="mt-3 text-base md:text-lg font-medium text-white tracking-wide">
+              {item.title}
+            </figcaption>
+          </motion.figure>
+        ))}
+      </AnimatePresence>
+    </motion.div>
   );
 }

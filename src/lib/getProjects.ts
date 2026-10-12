@@ -1,18 +1,21 @@
 import connectToDatabase from "@/lib/mongodb";
 import Project from "@/models/Project";
 
-export async function getProjects(category?: string, limit?: number, subCategory?: string): Promise<any[]> {
+export async function getProjects(category?: string, limit?: number, subCategory?: string, excludeSubCategory?: string): Promise<any[]> {
   const fetchPromise = (async () => {
     try {
       await connectToDatabase();
-      const query: any = { isDraft: false };
+      const conditions: any[] = [{ isDraft: false }];
       if (category && category !== "All") {
-        query.category = category;
+        conditions.push({ category });
       }
       if (subCategory && subCategory !== "All") {
-        query.subCategory = subCategory;
+        conditions.push({ subCategory });
       }
-      let dbQuery = Project.find(query).sort({ createdAt: -1 });
+      if (excludeSubCategory) {
+        conditions.push({ subCategory: { $ne: excludeSubCategory } });
+      }
+      let dbQuery = Project.find({ $and: conditions }).sort({ createdAt: -1 });
       if (limit) {
         dbQuery = dbQuery.limit(limit);
       }

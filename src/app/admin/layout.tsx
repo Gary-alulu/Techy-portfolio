@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { LayoutDashboard, FileText, Settings, Mail, MessageSquare } from "lucide-react";
+import { LayoutDashboard, FileText, Settings, Mail, MessageSquare, Printer, FileDown } from "lucide-react";
 import LogoutButton from "@/components/admin/LogoutButton";
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
@@ -16,8 +16,14 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           <Link href="/admin" className="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-white/5 transition-colors">
             <LayoutDashboard className="w-4 h-4" /> Projects
           </Link>
+          <Link href="/admin/print-media" className="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-white/5 transition-colors">
+            <Printer className="w-4 h-4" /> Print Media
+          </Link>
           <Link href="/admin/resumes" className="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-white/5 transition-colors">
             <FileText className="w-4 h-4" /> Resumes
+          </Link>
+          <Link href="/admin/portfolio" className="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-white/5 transition-colors">
+            <FileDown className="w-4 h-4" /> Portfolio
           </Link>
           <Link href="/admin/testimonials" className="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-white/5 transition-colors">
             <MessageSquare className="w-4 h-4" /> Testimonials
@@ -25,8 +31,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           <Link href="/admin/messages" className="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-white/5 transition-colors">
             <Mail className="w-4 h-4" /> Messages
           </Link>
-          <Link href="/admin" className="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-white/5 transition-colors text-white/50 cursor-not-allowed">
-            <Settings className="w-4 h-4" /> Settings (Soon)
+          <Link href="/admin/settings" className="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-white/5 transition-colors">
+            <Settings className="w-4 h-4" /> Settings
           </Link>
         </nav>
         

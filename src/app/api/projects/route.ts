@@ -45,22 +45,27 @@ export async function GET(req: Request) {
     const category = searchParams.get("category");
     const subCategory = searchParams.get("subCategory");
     const featured = searchParams.get("featured");
+    const excludeSubCategory = searchParams.get("excludeSubCategory");
 
-    const query: any = { isDraft: false };
-    
+    const conditions: any[] = [{ isDraft: false }];
+
     if (category && category.toLowerCase() !== "all") {
-      query.category = category;
-    }
-    
-    if (subCategory && subCategory.toLowerCase() !== "all") {
-      query.subCategory = subCategory;
-    }
-    
-    if (featured === "true") {
-      query.featured = true;
+      conditions.push({ category });
     }
 
-    const projects = await Project.find(query).sort({ createdAt: -1 });
+    if (subCategory && subCategory.toLowerCase() !== "all") {
+      conditions.push({ subCategory });
+    }
+
+    if (featured === "true") {
+      conditions.push({ featured: true });
+    }
+
+    if (excludeSubCategory) {
+      conditions.push({ subCategory: { $ne: excludeSubCategory } });
+    }
+
+    const projects = await Project.find({ $and: conditions }).sort({ createdAt: -1 });
     return NextResponse.json({ success: true, projects });
   } catch (error: any) {
     console.error("Fetch Projects Error:", error);
