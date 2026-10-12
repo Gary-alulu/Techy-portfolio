@@ -14,10 +14,18 @@ interface PortfolioMeta {
 
 const AUTO_OPEN_DELAY = 2500;
 const SESSION_KEY = "portfolioPopupSeen";
+const PILL_DISMISS_KEY = "portfolioPillDismissed";
 
 export default function PortfolioPopup() {
   const [meta, setMeta] = useState<PortfolioMeta | null>(null);
   const [open, setOpen] = useState(false);
+  const [pillDismissed, setPillDismissed] = useState(false);
+
+  useEffect(() => {
+    if (typeof window !== "undefined" && sessionStorage.getItem(PILL_DISMISS_KEY)) {
+      setPillDismissed(true);
+    }
+  }, []);
 
   // Load portfolio metadata (only render if a file exists)
   useEffect(() => {
@@ -71,17 +79,31 @@ export default function PortfolioPopup() {
   return (
     <>
       {/* Floating trigger — reopen the popup anytime */}
-      <motion.button
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6, delay: 1.5, ease: [0.16, 1, 0.3, 1] }}
-        onClick={() => setOpen(true)}
-        className="fixed bottom-10 left-6 md:bottom-12 md:left-10 z-[9998] flex items-center gap-2 glass-pill px-4 py-3 text-sm font-medium hover:bg-white/10 transition-colors shadow-lg"
-        aria-label="Download portfolio"
-      >
-        <Download className="w-4 h-4 text-[var(--color-accent-orange)]" />
-        <span className="hidden sm:inline">Portfolio</span>
-      </motion.button>
+      {!pillDismissed && (
+        <motion.button
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 1.5, ease: [0.16, 1, 0.3, 1] }}
+          onClick={() => setOpen(true)}
+          className="group fixed bottom-10 left-6 md:bottom-12 md:left-10 z-[9998] flex items-center gap-2 glass-pill px-4 py-3 text-sm font-medium hover:bg-white/10 transition-colors shadow-lg"
+          aria-label="Download portfolio"
+        >
+          <Download className="w-4 h-4 text-[var(--color-accent-orange)]" />
+          <span className="hidden sm:inline">Portfolio</span>
+          <span
+            role="button"
+            aria-label="Dismiss portfolio button"
+            onClick={(e) => {
+              e.stopPropagation();
+              setPillDismissed(true);
+              sessionStorage.setItem(PILL_DISMISS_KEY, "1");
+            }}
+            className="absolute -top-2 -right-2 w-5 h-5 rounded-full bg-neutral-800 border border-white/20 text-white/70 hover:text-white hover:bg-neutral-700 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+          >
+            <X className="w-3 h-3" />
+          </span>
+        </motion.button>
+      )}
 
       <AnimatePresence>
         {open && (
