@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react";
 import { ImagePlus, Loader2, Trash2, Upload } from "lucide-react";
-import { uploadImages } from "@/lib/uploadImages";
 
 interface PrintMediaItem {
   _id: string;
@@ -12,8 +11,17 @@ interface PrintMediaItem {
 }
 
 interface PendingItem {
-  data: string;
+  file: File;
+  preview: string;
   title: string;
+}
+
+interface CloudinarySignature {
+  cloudName: string;
+  apiKey: string;
+  folder: string;
+  timestamp: string;
+  signature: string;
 }
 
 export default function AdminPrintMedia() {
@@ -38,21 +46,19 @@ export default function AdminPrintMedia() {
     load();
   }, []);
 
-  function readFileAsDataURL(file: File): Promise<string> {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => resolve(reader.result as string);
-      reader.onerror = () => reject(reader.error);
-      reader.readAsDataURL(file);
-    });
-  }
-
   async function handleFiles(e: React.ChangeEvent<HTMLInputElement>) {
     const files = Array.from(e.target.files || []);
     if (files.length === 0) return;
-    // Read originals as-is — no resize or recompression, so full quality is kept.
-    const data = await Promise.all(files.map(readFileAsDataURL));
-    setPending((prev) => [...prev, ...data.map((d) => ({ data: d, title: "" }))]);
+    // Keep the raw File so it can be uploaded straight to Cloudinary at full
+    // quality — no resize or recompression happens anywhere.
+    setPending((prev) => [
+      ...prev,
+      ...files.map((file) => ({
+        file,
+        preview: URL.createObjectURL(file),
+        title: "",
+      })),
+    ]);
     e.target.value = "";
   }
 
@@ -63,7 +69,23 @@ export default function AdminPrintMedia() {
   }
 
   function removePending(index: number) {
-    setPending((prev) => prev.filter((_, i) => i !== index));
+    setPending((prev) => {
+      const target = prev[index];
+      if (target) URL.revokeObjectURL(target.preview);
+      return prev.filter((_, i) => i !== index);
+    });
+  }
+
+  async function getCloudinarySignature(): Promise<CloudinarySignature> {
+    const res = await fetch("/api/cloudinary/signature", { method: "POST" });
+    const json = await res.json().catch(() => ({}));
+    if (!res.ok || !json.signature) {
+      throw new Error(
+        json.error ||
+          "Could not sign the upload. Are Cloudinary credentials configured?"
+      );
+    }
+    return json;
   }
 
   async function handleUpload() {
@@ -75,20 +97,43 @@ export default function AdminPrintMedia() {
 
     setUploading(true);
     try {
-      const results = await uploadImages(
-        pending.map((p, i) => ({ name: `print-media-${i}`, data: p.data }))
-      );
+      for (const item of pending) {
+        const { cloudName, apiKey, folder, timestamp, signature } =
+          await getCloudinarySignature();
 
-      for (let i = 0; i < pending.length; i++) {
-        const url = results.find((r) => r.name === `print-media-${i}`)?.url;
-        if (!url) continue;
-        await fetch("/api/print-media", {
+        const form = new FormData();
+        form.append("file", item.file);
+        form.append("api_key", apiKey);
+        form.append("timestamp", timestamp);
+        form.append("folder", folder);
+        form.append("signature", signature);
+
+        const uploadRes = await fetch(
+          `https://api.cloudinary.com/v1_1/${cloudName}/auto/upload`,
+          { method: "POST", body: form }
+        );
+        const uploadJson = await uploadRes.json().catch(() => ({}));
+        if (!uploadRes.ok || !uploadJson.secure_url) {
+          throw new Error(
+            uploadJson.error?.message || "Cloudinary upload failed"
+          );
+        }
+
+        const saveRes = await fetch("/api/print-media", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ title: pending[i].title.trim(), imageUrl: url }),
+          body: JSON.stringify({
+            title: item.title.trim(),
+            imageUrl: uploadJson.secure_url,
+          }),
         });
+        if (!saveRes.ok) {
+          const saveJson = await saveRes.json().catch(() => ({}));
+          throw new Error(saveJson.error || "Failed to save print media");
+        }
       }
 
+      pending.forEach((p) => URL.revokeObjectURL(p.preview));
       setPending([]);
       await load();
     } catch (e: any) {
@@ -128,7 +173,8 @@ export default function AdminPrintMedia() {
           <ImagePlus className="w-8 h-8 text-[var(--color-secondary)]" />
           <span className="text-sm font-medium">Select images to upload</span>
           <span className="text-xs text-[var(--color-secondary)]">
-            You can select multiple images at once. Originals are kept at full quality (no compression).
+            You can select multiple images at once. Originals are kept at full
+            quality and uploaded straight to Cloudinary (large files supported).
           </span>
           <input
             type="file"
@@ -147,7 +193,7 @@ export default function AdminPrintMedia() {
                 className="flex items-center gap-4 bg-neutral-950 border border-white/10 rounded-lg p-3"
               >
                 <img
-                  src={item.data}
+                  src={item.preview}
                   alt="Preview"
                   className="h-20 w-20 object-cover rounded border border-white/10 shrink-0"
                 />
