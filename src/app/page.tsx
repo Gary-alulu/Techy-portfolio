@@ -4,20 +4,24 @@ import FeaturedWorkSection from "@/components/home/FeaturedWorkSection";
 import PortfolioPopup from "@/components/home/PortfolioPopup";
 import { getProjects } from "@/lib/getProjects";
 import { getSettings } from "@/lib/getSettings";
+import { getPrintMedia } from "@/lib/getPrintMedia";
 
 const HomeProcess = dynamic(() => import("@/components/home/HomeProcess"));
 
 export const revalidate = 60;
 
 export default async function Home() {
-  const settings = await getSettings();
+  const [settings, initialPrintMedia] = await Promise.all([
+    getSettings(),
+    getPrintMedia(),
+  ]);
   const priorityCategory = settings?.priorityCategory || "";
 
   let projects = priorityCategory
-    ? await getProjects(priorityCategory, 4, undefined, "Print Media")
+    ? await getProjects(priorityCategory, 3, undefined, "Print Media")
     : [];
   if (projects.length === 0) {
-    projects = await getProjects(undefined, 4, undefined, "Print Media");
+    projects = await getProjects(undefined, 3, undefined, "Print Media");
   }
 
   return (
@@ -28,6 +32,7 @@ export default async function Home() {
       {/* FEATURED WORK */}
       <FeaturedWorkSection
         initialProjects={projects.length > 0 ? projects : undefined}
+        initialPrintMedia={initialPrintMedia}
         priorityCategory={priorityCategory}
       />
 

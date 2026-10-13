@@ -7,7 +7,6 @@ export async function getPrintMedia(): Promise<any[]> {
       await connectToDatabase();
       const items = await PrintMedia.find()
         .sort({ order: 1, createdAt: 1 })
-        .maxTimeMS(2000)
         .lean();
       return items.map((item: any) => ({
         ...item,
@@ -19,9 +18,10 @@ export async function getPrintMedia(): Promise<any[]> {
     }
   })();
 
-  // Strict timeout so build/render NEVER hangs on slow DB connections.
+  // Bounded timeout so build/render never hangs on slow DB connections,
+  //   while still giving cold serverless connections time to complete.
   const timeoutPromise = new Promise<any[]>((resolve) => {
-    setTimeout(() => resolve([]), 1000);
+    setTimeout(() => resolve([]), 4000);
   });
 
   return Promise.race([fetchPromise, timeoutPromise]);
