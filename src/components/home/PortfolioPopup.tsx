@@ -82,12 +82,19 @@ export default function PortfolioPopup() {
       {!pillDismissed && (
         <motion.button
           initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 1.5, ease: [0.16, 1, 0.3, 1] }}
+          animate={{ opacity: 1, y: [0, -10, 0] }}
+          transition={{
+            opacity: { duration: 0.6, delay: 1.5, ease: [0.16, 1, 0.3, 1] },
+            y: { duration: 3, repeat: Infinity, ease: "easeInOut" },
+          }}
           onClick={() => setOpen(true)}
           className="group fixed bottom-10 left-6 md:bottom-12 md:left-10 z-[9998] flex items-center gap-2 glass-pill px-4 py-3 text-sm font-medium hover:bg-white/10 transition-colors shadow-lg"
           aria-label="Download portfolio"
         >
+          <span
+            aria-hidden
+            className="absolute inset-0 -z-10 rounded-full bg-[var(--color-accent-orange)]/20 blur-xl scale-110 group-hover:bg-[var(--color-accent-orange)]/30 transition-colors duration-500 pointer-events-none"
+          />
           <Download className="w-4 h-4 text-[var(--color-accent-orange)]" />
           <span className="hidden sm:inline">Portfolio</span>
           <span
