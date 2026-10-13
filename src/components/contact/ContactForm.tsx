@@ -25,7 +25,8 @@ export function ContactForm() {
     projectType: "",
     budget: "",
     timeline: "",
-    message: ""
+    message: "",
+    website: ""
   });
   
   const [status, setStatus] = useState<"idle" | "loading" | "success">("idle");
@@ -91,7 +92,7 @@ ${formData.message}`;
           Thanks for reaching out. I&apos;ll review your details and get back to you within 24 hours.
         </p>
         <button 
-          onClick={() => { setStatus("idle"); setFormData({ name: "", email: "", phone: "", company: "", projectType: "", budget: "", timeline: "", message: "" }) }}
+          onClick={() => { setStatus("idle"); setFormData({ name: "", email: "", phone: "", company: "", projectType: "", budget: "", timeline: "", message: "", website: "" }) }}
           className="mt-8 text-sm font-medium hover:text-white transition-colors underline underline-offset-4"
         >
           Send another message
@@ -102,6 +103,19 @@ ${formData.message}`;
 
   return (
     <form onSubmit={handleSubmit} className="space-y-8 relative z-10">
+
+      {/* Honeypot field: hidden from humans, bots fill it and get silently dropped */}
+      <div className="hidden" aria-hidden="true">
+        <label htmlFor="website">Website</label>
+        <input
+          id="website"
+          type="text"
+          tabIndex={-1}
+          autoComplete="off"
+          value={formData.website}
+          onChange={(e) => updateField("website", e.target.value)}
+        />
+      </div>
       
       {/* Basic Info */}
       <div className="space-y-6">

@@ -45,6 +45,9 @@ export default function WatermarkedImage({
         <img
           src={watermarkedSrc}
           alt={alt}
+          loading="lazy"
+          decoding="async"
+          fetchPriority="low"
           className={`absolute inset-0 w-full h-full opacity-0 z-10 cursor-context-menu ${className || ""}`}
         />
 

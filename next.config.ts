@@ -1,9 +1,6 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  typescript: {
-    ignoreBuildErrors: true,
-  },
   compress: true,
   images: {
     formats: ['image/avif', 'image/webp'],
@@ -15,10 +12,6 @@ const nextConfig: NextConfig = {
         protocol: 'https',
         hostname: '**',
       },
-      {
-        protocol: 'http',
-        hostname: '**',
-      }
     ],
   },
   experimental: {

@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import sharp from "sharp";
 import fs from "fs";
 import path from "path";
+import { guardFetchUrl } from "@/lib/ssrf";
+
+const ALLOWED_HOSTS = ["cloudinary.com", "res.cloudinary.com"];
 
 export async function GET(request: NextRequest) {
   try {
@@ -19,8 +22,14 @@ export async function GET(request: NextRequest) {
       let fetchUrl = url;
       if (url.startsWith("/")) {
         fetchUrl = `${request.nextUrl.origin}${url}`;
+      } else {
+        const guarded = await guardFetchUrl(url, ALLOWED_HOSTS);
+        if (!guarded.ok) {
+          return new NextResponse(guarded.error, { status: 403 });
+        }
+        fetchUrl = guarded.url;
       }
-      
+
       const response = await fetch(fetchUrl);
       if (!response.ok) {
         throw new Error(`Failed to fetch image: ${response.statusText}`);

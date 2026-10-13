@@ -182,7 +182,7 @@ export function WorkContent({ activeCategory, projects: initialProjects, initial
                         alt={project.title} 
                         fill 
                         quality={100}
-                        priority={index < 4}
+                        priority={index === 0}
                         sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                         className="object-cover opacity-80" 
                       />
@@ -340,7 +340,7 @@ function PrintMediaGrid({ items, isLoading }: { items: PrintMediaItem[]; isLoadi
                     alt={item.title}
                     fill
                     quality={100}
-                    priority={index < 4}
+                    priority={index === 0}
                     sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
                     className="object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
                   />

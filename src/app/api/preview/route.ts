@@ -1,4 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
+import { guardFetchUrl } from "@/lib/ssrf";
+
+const MAX_REDIRECTS = 4;
 
 export async function GET(req: NextRequest) {
   const url = req.nextUrl.searchParams.get("url");
@@ -7,15 +10,46 @@ export async function GET(req: NextRequest) {
   }
 
   try {
-    const parsed = new URL(url);
-    const res = await fetch(parsed.toString(), {
-      headers: {
-        "User-Agent": "Mozilla/5.0 (compatible; LinkPreview/1.0)",
-        "Accept": "text/html",
-      },
-      signal: AbortSignal.timeout(5000),
-      redirect: "follow",
-    });
+    const guarded = await guardFetchUrl(url);
+    if (!guarded.ok) {
+      return NextResponse.json({ error: guarded.error }, { status: 403 });
+    }
+
+    // Follow redirects manually so every hop passes the SSRF guard.
+    let target = guarded.url;
+    let hops = 0;
+    let res: Response | undefined;
+    while (true) {
+      res = await fetch(target, {
+        headers: {
+          "User-Agent": "Mozilla/5.0 (compatible; LinkPreview/1.0)",
+          Accept: "text/html",
+        },
+        signal: AbortSignal.timeout(5000),
+        redirect: "manual",
+      });
+
+      if (res.status >= 300 && res.status < 400) {
+        const location = res.headers.get("location");
+        if (!location || hops >= MAX_REDIRECTS) {
+          return NextResponse.json({ error: "Too many redirects" }, { status: 400 });
+        }
+        const next = new URL(location, target).toString();
+        const nextGuarded = await guardFetchUrl(next);
+        if (!nextGuarded.ok) {
+          return NextResponse.json({ error: nextGuarded.error }, { status: 403 });
+        }
+        target = nextGuarded.url;
+        hops += 1;
+        continue;
+      }
+      break;
+    }
+
+    if (!res || !res.ok) {
+      return NextResponse.json({ error: "Failed to fetch" }, { status: 502 });
+    }
+
     const html = await res.text();
 
     // Extract og:image
@@ -32,6 +66,7 @@ export async function GET(req: NextRequest) {
       || html.match(/<meta[^>]*content=["']([^"']+)["'][^>]*property=["']og:title["']/i)
       || html.match(/<title>([^<]+)<\/title>/i);
 
+    const parsed = new URL(target);
     let imageUrl = ogMatch?.[1] || twMatch?.[1] || null;
     const title = titleMatch?.[1]?.trim() || parsed.hostname;
 
@@ -45,7 +80,7 @@ export async function GET(req: NextRequest) {
       imageUrl = `https://www.google.com/s2/favicons?domain=${parsed.hostname}&sz=128`;
     }
 
-    return NextResponse.json({ imageUrl, title });
+    return NextResponse.json({ imageUrl, title, url: target });
   } catch {
     // Even on error, try to return a favicon
     try {
