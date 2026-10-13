@@ -4,7 +4,7 @@ import { useState, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import Image from "next/image";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, ChevronLeft, ChevronRight, Expand, X } from "lucide-react";
 
 const CATEGORIES = [
   { name: "All" },
@@ -262,6 +262,26 @@ export function WorkContent({ activeCategory, projects: initialProjects, initial
 }
 
 function PrintMediaGrid({ items, isLoading }: { items: PrintMediaItem[]; isLoading: boolean }) {
+  const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
+  const selected = selectedIndex !== null ? items[selectedIndex] : null;
+
+  useEffect(() => {
+    if (selectedIndex === null) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setSelectedIndex(null);
+      if (e.key === "ArrowLeft")
+        setSelectedIndex((i) => (i === null ? i : (i - 1 + items.length) % items.length));
+      if (e.key === "ArrowRight")
+        setSelectedIndex((i) => (i === null ? i : (i + 1) % items.length));
+    };
+    window.addEventListener("keydown", onKey);
+    document.body.style.overflow = "hidden";
+    return () => {
+      window.removeEventListener("keydown", onKey);
+      document.body.style.overflow = "";
+    };
+  }, [selectedIndex, items.length]);
+
   if (isLoading) {
     return (
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
@@ -288,40 +308,125 @@ function PrintMediaGrid({ items, isLoading }: { items: PrintMediaItem[]; isLoadi
   }
 
   return (
-    <motion.div layout className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-      <AnimatePresence mode="popLayout">
-        {items.map((item, index) => (
-          <motion.figure
-            key={item._id}
-            layout
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.9 }}
-            transition={{ duration: 0.3 }}
-            className="group"
+    <>
+      <motion.div layout className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+        <AnimatePresence mode="popLayout">
+          {items.map((item, index) => (
+            <motion.figure
+              key={item._id}
+              layout
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.9 }}
+              transition={{ duration: 0.3 }}
+              className="group"
+            >
+              <div
+                role="button"
+                tabIndex={0}
+                aria-label={`Open ${item.title}`}
+                onClick={() => setSelectedIndex(index)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    setSelectedIndex(index);
+                  }
+                }}
+                className="relative h-[400px] rounded-[var(--radius-container)] overflow-hidden border border-white/5 bg-neutral-900 cursor-zoom-in outline-none focus-visible:ring-2 focus-visible:ring-white/40"
+              >
+                {item.imageUrl ? (
+                  <Image
+                    src={item.imageUrl}
+                    alt={item.title}
+                    fill
+                    quality={100}
+                    priority={index < 4}
+                    sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                    className="object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
+                  />
+                ) : (
+                  <div className="w-full h-full bg-gradient-to-br from-neutral-800 to-black" />
+                )}
+                <div className="absolute inset-0 bg-black/10 group-hover:bg-black/0 transition-colors duration-500" />
+                <div className="absolute top-4 right-4 w-10 h-10 rounded-full bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                  <Expand className="w-4 h-4 text-white" />
+                </div>
+              </div>
+              <figcaption className="mt-3 text-base md:text-lg font-medium text-white tracking-wide">
+                {item.title}
+              </figcaption>
+            </motion.figure>
+          ))}
+        </AnimatePresence>
+      </motion.div>
+
+      <AnimatePresence>
+        {selected && (
+          <motion.div
+            className="fixed inset-0 z-[10000] bg-black/90 backdrop-blur-xl flex items-center justify-center p-4 sm:p-8"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setSelectedIndex(null)}
           >
-            <div className="relative h-[400px] rounded-[var(--radius-container)] overflow-hidden border border-white/5 bg-neutral-900">
-              {item.imageUrl ? (
-                <Image
-                  src={item.imageUrl}
-                  alt={item.title}
-                  fill
-                  quality={100}
-                  priority={index < 4}
-                  sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                  className="object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
-                />
-              ) : (
-                <div className="w-full h-full bg-gradient-to-br from-neutral-800 to-black" />
-              )}
-              <div className="absolute inset-0 bg-black/10 group-hover:bg-black/0 transition-colors duration-500" />
+            <div className="relative w-full max-w-5xl flex flex-col items-center" onClick={(e) => e.stopPropagation()}>
+              <div className="relative w-full h-[70vh] sm:h-[80vh] rounded-2xl overflow-hidden">
+                  <Image
+                    src={selected.imageUrl}
+                    alt={selected.title}
+                    fill
+                    quality={100}
+                    sizes="(max-width: 768px) 100vw, 80vw"
+                    className="object-contain select-none"
+                    draggable={false}
+                  />
+                </div>
+              <div className="mt-4 text-center">
+                <h3 className="text-lg font-medium text-white">{selected.title}</h3>
+                <p className="text-sm text-white/50 mt-1">
+                  {selectedIndex! + 1} / {items.length}
+                </p>
+              </div>
             </div>
-            <figcaption className="mt-3 text-base md:text-lg font-medium text-white tracking-wide">
-              {item.title}
-            </figcaption>
-          </motion.figure>
-        ))}
+
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setSelectedIndex(null);
+              }}
+              className="absolute top-5 right-5 z-10 w-11 h-11 rounded-full bg-white/5 hover:bg-white/10 border border-white/20 flex items-center justify-center transition-all hover:rotate-90"
+              aria-label="Close"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            {items.length > 1 && (
+              <>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setSelectedIndex((selectedIndex! - 1 + items.length) % items.length);
+                  }}
+                  className="absolute left-3 sm:left-8 top-1/2 -translate-y-1/2 z-10 w-11 h-11 rounded-full bg-white/5 hover:bg-white/10 border border-white/20 flex items-center justify-center transition-all"
+                  aria-label="Previous image"
+                >
+                  <ChevronLeft className="w-5 h-5" />
+                </button>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setSelectedIndex((selectedIndex! + 1) % items.length);
+                  }}
+                  className="absolute right-3 sm:right-8 top-1/2 -translate-y-1/2 z-10 w-11 h-11 rounded-full bg-white/5 hover:bg-white/10 border border-white/20 flex items-center justify-center transition-all"
+                  aria-label="Next image"
+                >
+                  <ChevronRight className="w-5 h-5" />
+                </button>
+              </>
+            )}
+          </motion.div>
+        )}
       </AnimatePresence>
-    </motion.div>
+    </>
   );
 }
